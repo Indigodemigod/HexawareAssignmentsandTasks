@@ -8,8 +8,6 @@ class TicketBookingSystem(EventServiceProviderImpl, BookingSystemServiceProvider
         super().__init__(dbUtil)
 
     def main(self):
-        event = []
-        bookings = []
         while True:
             print("Select one options from the options given below : ")
             print("1. Type create_event to Create a new event.")
@@ -21,8 +19,7 @@ class TicketBookingSystem(EventServiceProviderImpl, BookingSystemServiceProvider
             choice = input("Enter your choice here : ")
             match choice:
                 case "create_event":
-                    row = self.create_event()
-                    print(row)
+                    self.create_event()
                     print()
                 case "get_event_details":
                     self.getEventDetails()
