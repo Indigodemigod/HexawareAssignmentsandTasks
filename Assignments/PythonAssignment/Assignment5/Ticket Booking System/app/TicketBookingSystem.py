@@ -33,6 +33,7 @@ class TicketBookingSystem(EventServiceProviderImpl, BookingSystemServiceProvider
                 case "book_tickets":
                     num_tickets = int(input("Please enter the number of tickets you want to book : "))
                     self.book_tickets(num_tickets)
+                    print()
                 case "cancel_tickets":
                     booking_id = int(input("Please enter your booking id here : "))
                     self.cancel_booking(booking_id)
@@ -40,7 +41,8 @@ class TicketBookingSystem(EventServiceProviderImpl, BookingSystemServiceProvider
                 case "exit":
                     break
                 case _:
-                    raise Exception("Unexpected input! Try again")
+                    print("Invalid input! Please Try Again.")
+                    print("We're heading you to main menu.")
         print("Thanks for visiting our platform to book tickets. Hope to see you soon.")
 
 
