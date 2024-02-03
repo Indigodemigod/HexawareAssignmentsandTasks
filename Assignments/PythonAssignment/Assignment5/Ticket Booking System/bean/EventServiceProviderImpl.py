@@ -29,8 +29,10 @@ class EventServiceProviderImpl(IEventServiceProvider):
         self.dbUtil.con.commit()
         cursor.execute("select * from events")
         rows = cursor.fetchall()
-        print(rows)
-        return rows
+        for row in rows:
+            print(row[-1])
+        print(f"Event id for this event is {rows[-1][0]}")
+        print("Event created successfully you can see the details above.")
 
     def getEventDetails(self):
         cursor = self.dbUtil.getDBConnection()
