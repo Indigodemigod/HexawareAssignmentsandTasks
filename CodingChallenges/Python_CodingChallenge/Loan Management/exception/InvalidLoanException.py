@@ -1,0 +1,3 @@
+
+class InvalidLoanException(Exception):
+    pass
