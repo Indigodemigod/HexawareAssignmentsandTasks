@@ -83,10 +83,20 @@ class ILoanRepositoryImpl(ILoanRepository):
 
     def loanStatus(self, loanId):
         cursor = self.con.cursor()
-        cursor.execute("select loan_status from loan where loan_id = %s", (loanId, ))
+        cursor.execute("select creditScore from customers join loan on loan.customer_id=customers.customer_id and loan_id = %s", (loanId, ))
         stat = cursor.fetchone()
         if stat:
-            print(f"Your loan status is {stat[0]}")
+            credScore = stat[0]
+            if credScore > 650:
+                q = "update loan set loan_status='Approved' where loan_id=%s"
+                cursor.execute(q, (loanId, ))
+                self.con.commit()
+                print("Congratulations! Your loan is Approved.")
+            else:
+                q = "update loan set loan_status='Rejected' where loan_id=%s"
+                cursor.execute(q, (loanId,))
+                self.con.commit()
+                print("Sorry! Your loan is rejected due to low credit score.")
         else:
             raise InvalidLoanException("Loan not found.")
 
