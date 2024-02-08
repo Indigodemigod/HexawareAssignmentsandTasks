@@ -8,7 +8,7 @@ from myexceptions.CustomerNotFound import CustomerNotFoundException
 
 class TestProductCreation(unittest.TestCase):
     def setUp(self):
-        self.service = OrderProcessorRepositoryImpl()  # Assuming Service is the class where createProduct is called
+        self.service = OrderProcessorRepositoryImpl()
 
     @patch('dao.OrderProcessorRepositoryImpl.OrderProcessorRepositoryImpl.createProduct')
     def test_for_create_product(self, mock_create_product):
@@ -34,15 +34,17 @@ class TestProductCreation(unittest.TestCase):
             mock_create_customer.assert_called_with(customer)
 
     @patch('dao.OrderProcessorRepositoryImpl.OrderProcessorRepositoryImpl.placeOrder')
-    def test_for_place_order(self, mock_place_order):
+    @patch('dao.OrderProcessorRepositoryImpl.OrderProcessorRepositoryImpl.get_customer_by_id')
+    @patch('dao.OrderProcessorRepositoryImpl.OrderProcessorRepositoryImpl.get_product_by_id')
+    def test_for_place_order(self, mock_get_product_by_id, mock_get_customer_by_id, mock_place_order):
         customer_id = 1
-        customer = self.service.get_customer_by_id(customer_id)
+        mock_get_customer_by_id.return_value = Customer("Test Customer", "test@example.com", "password")
         product_id = 1
-        product = self.service.get_product_by_id(product_id)
-        products_quantities = [(product, 2)]
+        mock_get_product_by_id.return_value = Product("Test Product", 100.0, "Description", 10)
+        products_quantities = [(mock_get_product_by_id.return_value, 2)]
         shipping_address = "Test Address"
         test_cases = [
-            (customer, products_quantities, shipping_address, True)
+            (mock_get_customer_by_id.return_value, products_quantities, shipping_address, True)
         ]
         for customer, product, shipping_address, expected in test_cases:
             mock_place_order.return_value = expected
@@ -50,13 +52,12 @@ class TestProductCreation(unittest.TestCase):
             self.assertEqual(result, mock_place_order.return_value)
             mock_place_order.assert_called_with(customer, product, shipping_address)
 
-    def test_for_exception_handling(self):
-        pass
-        # with self.assertRaises(CustomerNotFoundException):
-        # mock_customer.return_value = CustomerNotFoundException("Customer not found.")
-        # customer_id = 111
-        # customer = self.service.get_customer_by_id(customer_id)
-        # self.assertEquals(customer, mock_customer.return_value)
+    @patch('dao.OrderProcessorRepositoryImpl.OrderProcessorRepositoryImpl.get_customer_by_id')
+    def test_for_exception_handling(self, mock_get_customer_by_id):
+        mock_get_customer_by_id.side_effect = CustomerNotFoundException("Customer not found.")
+        customer_id = 111
+        with self.assertRaises(CustomerNotFoundException):
+            self.service.get_customer_by_id(customer_id)
 
 
 if __name__ == '__main__':
