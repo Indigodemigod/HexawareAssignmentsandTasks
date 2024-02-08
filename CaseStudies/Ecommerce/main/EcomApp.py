@@ -3,6 +3,7 @@ from entity.Customers import Customer
 from dao.OrderProcessorRepositoryImpl import OrderProcessorRepositoryImpl
 from myexceptions.ProductNotFound import ProductNotFoundException
 from entity.Products import Product
+from util.DBConnection import DBConnection
 
 
 class EcomApp(OrderProcessorRepositoryImpl):
@@ -25,7 +26,7 @@ class EcomApp(OrderProcessorRepositoryImpl):
             match choice:
                 case 1:
                     name = input("Enter your name here : ")
-                    email = input("Enter your email here : ")
+                    email = input("Enter your email here (eg: sarthak@gmail.com ) : ")
                     password = input("Enter your password here : ")
                     customer = Customer(name, email, password)
                     customer_created = self.createCustomer(customer)
@@ -35,23 +36,59 @@ class EcomApp(OrderProcessorRepositoryImpl):
                         print()
 
                 case 2:
-                    name = input("Enter product name : ")
-                    price = float(input("Enter price of the product here : "))
-                    category = input("Enter category of product : ")
-                    quantity = int(input("Enter number of item : "))
-                    product = Product(name, price, category, quantity)
-                    product_created = self.createProduct(product)
-                    if product_created:
-                        print("Product added successfully. Congratulations.")
-                        print(f"Your product id is {product.product_id}")
-                        print()
+                    customer_id = int(input("Enter your customer id : "))
+                    passw = input("Enter your password : ")
+                    cust_details = self.get_customer_by_id(customer_id)
+                    try:
+                        if cust_details:
+                            cust_id = cust_details.customer_id
+                            password = cust_details.password
+                            if cust_id == customer_id and passw == password:
+                                name = input("Enter product name : ")
+                                price = float(input("Enter price of the product here : "))
+                                category = input("Enter category of product : ")
+                                quantity = int(input("Enter number of item : "))
+                                product = Product(name, price, category, quantity)
+                                product_created = self.createProduct(product)
+                                if product_created:
+                                    print("Product added successfully. Congratulations.")
+                                    print(f"Your product id is {product.product_id}")
+                                    print()
+                            else:
+                                print("Invalid credentials. Please try again.")
+                        else:
+                            raise CustomerNotFoundException("Customer not found.")
+                    except CustomerNotFoundException as c1:
+                        print("Error with fetching customer. Please register yourself. ", c1.message)
 
                 case 3:
-                    product_id = int(input("Enter your product id here : "))
-                    deleted_product = self.deleteProduct(product_id)
-                    if deleted_product:
-                        print("Product deleted successfully.")
-                        print()
+                    customer_id = int(input("Enter your customer id : "))
+                    passw = input("Enter your password : ")
+                    cust_details = self.get_customer_by_id(customer_id)
+                    try:
+                        if cust_details:
+                            cust_id = cust_details.customer_id
+                            password = cust_details.password
+                            if cust_id == customer_id and passw == password:
+                                cursor = self.con.cursor()
+                                cursor.execute("select * from products")
+                                products = cursor.fetchall()
+                                for product in products:
+                                    print("Product Id = ", product[0], end=" | ")
+                                    print("Product Name = ", product[1])
+                                    print("------------")
+                                product_id = int(input("Enter your product id here : "))
+                                deleted_product = self.deleteProduct(product_id)
+                                if deleted_product:
+                                    print("Product deleted successfully.")
+                                    print()
+                            else:
+                                print("Invalid credentials. Please try again.")
+                        else:
+                            raise CustomerNotFoundException("Customer not found.")
+                    except CustomerNotFoundException as c1:
+                        print("Error with fetching customer. Please register yourself. ", c1.message)
+
                 case 4:
                     customer_id = int(input("Enter customer id : "))
                     product_id = int(input("Enter product id : "))
@@ -71,10 +108,11 @@ class EcomApp(OrderProcessorRepositoryImpl):
                         if customer:
                             cart_items = self.getAllFromCart(customer)
                             for cart in cart_items:
-                                print("Cart Id : ", cart[0])
-                                print("Customer Id : ", cart[1])
-                                print("Product Id : ", cart[2])
-                                print("Quantity : ", cart[3])
+                                print("Product Id : ", cart[0], end=" | ")
+                                print("Product Name : ", cart[1], end=" | ")
+                                print("Price : ", cart[2], end=" | ")
+                                print("Category : ", cart[3], end=" | ")
+                                print("Quantity : ", cart[-1])
                                 print("-------------------")
                         else:
                             raise CustomerNotFoundException("Customer not found.")
@@ -83,6 +121,18 @@ class EcomApp(OrderProcessorRepositoryImpl):
                 case 6:
                     customer_id = int(input("Enter your customer id : "))
                     customer = self.get_customer_by_id(customer_id)
+                    cursor = self.con.cursor()
+                    cursor.execute("select * from products")
+                    products = cursor.fetchall()
+                    print("Product Details: ")
+                    for product in products:
+                        print("Product id : ", product[0], end=" | ")
+                        print("Product Name : ", product[1], end=" | ")
+                        print("Price of the product : ", product[2], end=" | ")
+                        print("Category : ", product[3], end=" | ")
+                        print("Stock Available : ", product[4])
+                        print("-----------------")
+
                     products_quantities = []
                     while True:
                         product_id = int(input("Please enter product_id(0 to stop) : "))
@@ -114,10 +164,10 @@ class EcomApp(OrderProcessorRepositoryImpl):
                         if customer:
                             products_quantities = self.getOrdersByCustomers(customer)
                             for product_quantity in products_quantities:
-                                print("Product id : ", product_quantity[0])
-                                print("Product Name : ", product_quantity[1])
-                                print("Price : ", product_quantity[2])
-                                print("Category : ", product_quantity[3])
+                                print("Product id : ", product_quantity[0], end=" | ")
+                                print("Product Name : ", product_quantity[1], end=" | ")
+                                print("Price : ", product_quantity[2], end=" | ")
+                                print("Category : ", product_quantity[3], end=" | ")
                                 print("Quantity : ", product_quantity[5])
                                 print("------------------------")
                             print("Order details fetched successfully.")
